@@ -3,6 +3,7 @@ pipeline {
   environment {
     start_message = "STARTED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
     successful_message = "SUCCESSFUL: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
+    slack_token = credentials('slack.token')
   }
   stages {
     stage('Checkout') {
@@ -16,7 +17,7 @@ pipeline {
                 if (env.BRANCH_NAME.startsWith('PR')){
                     start_message = "${start_message}\n${env.CHANGE_AUTHOR} want to merge into ${env.CHANGE_TARGET}\nTitle: ${env.CHANGE_TITLE}"
                 }
-                slackSend(message: start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: 'p89Mngix4YAQ9f6jzhHXSNQT')
+                slackSend(message: start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
             }
           },
           "Print ENV":{
@@ -72,15 +73,15 @@ pipeline {
             if (env.BRANCH_NAME.startsWith('PR')){
                 successful_message = "${successful_message} \n This PR looks good, it can be merged into ${env.CHANGE_TARGET}"
             }
-            slackSend(message: successful_message, channel: '#general', color: '#00FF00', teamDomain: 'jenkinsdemoteam', token: 'p89Mngix4YAQ9f6jzhHXSNQT')
+            slackSend(message: successful_message, channel: '#general', color: '#00FF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
         }
 
     }
     failure {
-      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: 'p89Mngix4YAQ9f6jzhHXSNQT')
+      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
     }
     unstable {
-      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: 'p89Mngix4YAQ9f6jzhHXSNQT')
+      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
     }
   }
 }
