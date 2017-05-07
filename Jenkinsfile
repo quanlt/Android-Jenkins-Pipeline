@@ -1,8 +1,8 @@
 pipeline {
   agent any
   environment {
-    start_message = "STARTED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
-    successful_message = "SUCCESSFUL: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})"
+    start_message = "STARTED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>"
+    successful_message = "SUCCESSFUL: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>"
     slack_token = credentials('slack.token')
   }
   stages {
@@ -19,9 +19,6 @@ pipeline {
                 }
                 slackSend(message: start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
             }
-          },
-          "Print ENV":{
-            sh 'printenv'
           }
         )
       }
@@ -55,13 +52,13 @@ pipeline {
                 withAWS(credentials: 'ethan.aws', region: 'ap-northeast-1') {
                     s3Upload(file: 'app-release-signed-aligned.apk', bucket: 'jenkins-archiver', path: "archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk")
                 }
-                successful_message = "${successful_message}\nProd APK: https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk"
+                successful_message = "${successful_message}\nProd APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk|app-release-${env.BUILD_NUMBER}.apk>"
             }
             if (!env.BRANCH_NAME.startsWith('PR')){
                 withAWS(credentials: 'ethan.aws', region: 'ap-northeast-1') {
                     s3Upload(file: 'app/build/outputs/apk/app-debug.apk', bucket: 'jenkins-archiver', path: "archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk")
                 }
-                successful_message = "${successful_message}\nDebug APK: https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk"
+                successful_message = "${successful_message}\nDebug APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk|app-debug-${env.BUILD_NUMBER}.apk>"
             }
          }
       }
@@ -78,10 +75,10 @@ pipeline {
 
     }
     failure {
-      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
+      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
     }
     unstable {
-      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
+      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#828282', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
     }
   }
 }
