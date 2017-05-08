@@ -15,10 +15,9 @@ pipeline {
           "Send Notification": {
             script {
                 if (env.BRANCH_NAME.startsWith('PR')){
-                    start_message = "${start_message}\n${env.CHANGE_AUTHOR} want to merge into ${env.CHANGE_TARGET}\nTitle: ${env.CHANGE_TITLE}"
+                    env.start_message = "${env.start_message}\n${env.CHANGE_AUTHOR} want to merge into ${env.CHANGE_TARGET}\nTitle: ${env.CHANGE_TITLE}"
                 }
-                //slackSend(message: start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
-		sh 'printenv'
+                slackSend(message: env.start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
             }
           }
         )
@@ -53,13 +52,13 @@ pipeline {
                 withAWS(credentials: 'ethan.aws', region: 'ap-northeast-1') {
                     s3Upload(file: 'app-release-signed-aligned.apk', bucket: 'jenkins-archiver', path: "archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk")
                 }
-                successful_message = "${successful_message}\nProd APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk|app-release-${env.BUILD_NUMBER}.apk>"
+                env.successful_message = "${env.successful_message}\nProd APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk|app-release-${env.BUILD_NUMBER}.apk>"
             }
             if (!env.BRANCH_NAME.startsWith('PR')){
                 withAWS(credentials: 'ethan.aws', region: 'ap-northeast-1') {
                     s3Upload(file: 'app/build/outputs/apk/app-debug.apk', bucket: 'jenkins-archiver', path: "archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk")
                 }
-                successful_message = "${successful_message}\nDebug APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk|app-debug-${env.BUILD_NUMBER}.apk>"
+                env.successful_message = "${env.successful_message}\nDebug APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk|app-debug-${env.BUILD_NUMBER}.apk>"
             }
          }
       }
@@ -69,9 +68,9 @@ pipeline {
     success {
         script {
             if (env.BRANCH_NAME.startsWith('PR')){
-                successful_message = "${successful_message} \n This PR looks good, it can be merged into ${env.CHANGE_TARGET}"
+                env.successful_message = "${env.successful_message} \n This PR looks good, it can be merged into ${env.CHANGE_TARGET}"
             }
-            slackSend(message: successful_message, channel: '#general', color: '#00FF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
+            slackSend(message: env.successful_message, channel: '#general', color: '#00FF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
         }
 
     }
