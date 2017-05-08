@@ -17,6 +17,7 @@ pipeline {
                 if (env.BRANCH_NAME.startsWith('PR')){
                     env.start_message = "${env.start_message}\n${env.CHANGE_AUTHOR} want to merge into ${env.CHANGE_TARGET}\nTitle: ${env.CHANGE_TITLE}"
                 }
+                sh 'printenv'
                 slackSend(message: env.start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
             }
           }
