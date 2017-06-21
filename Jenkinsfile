@@ -18,7 +18,7 @@ pipeline {
                     start_message = "${start_message}\n${env.CHANGE_AUTHOR} want to merge into ${env.CHANGE_TARGET}\nTitle: ${env.CHANGE_TITLE}"
                 }
                 sh 'printenv'
-                slackSend(message: start_message, channel: '#vn-actisso', color: '#FFFF00', teamDomain: 'innovatube', token: slack_token)
+                slackSend(message: start_message, channel: 'istqb_plus', color: '#FFFF00', teamDomain: 'innovatube', token: slack_token)
             }
           }
         )
@@ -87,15 +87,15 @@ pipeline {
             if (env.BRANCH_NAME.startsWith('PR')){
                 successful_message = "${successful_message} \n This PR looks good, it can be merged into ${env.CHANGE_TARGET}"
             }
-            slackSend(message: successful_message, channel: '#vn-actisso', color: '#00FF00', teamDomain: 'innovatube', token: slack_token)
+            slackSend(message: successful_message, channel: 'istqb_plus', color: '#00FF00', teamDomain: 'innovatube', token: slack_token)
         }
 
     }
     failure {
-      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#FF0000', channel: '#vn-actisso', teamDomain: 'innovatube', token: slack_token)
+      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#FF0000', channel: 'istqb_plus', teamDomain: 'innovatube', token: slack_token)
     }
     unstable {
-      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#828282', channel: '#vn-actisso', teamDomain: 'innovatube', token: slack_token)
+      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#828282', channel: 'istqb_plus', teamDomain: 'innovatube', token: slack_token)
     }
   }
 }
