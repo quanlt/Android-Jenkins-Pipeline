@@ -18,15 +18,25 @@ pipeline {
                     start_message = "${start_message}\n${env.CHANGE_AUTHOR} want to merge into ${env.CHANGE_TARGET}\nTitle: ${env.CHANGE_TITLE}"
                 }
                 sh 'printenv'
-                slackSend(message: start_message, channel: '#general', color: '#FFFF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
+                slackSend(message: start_message, channel: '#vn-actisso', color: '#FFFF00', teamDomain: 'innovatube', token: slack_token)
             }
           }
         )
       }
     }
-    stage('Build') {
+    stage('Build Debug') {
       steps {
-          sh 'gradle assemble'
+          sh 'gradle assembleDebug'
+      }
+    }
+    stage('Build Release') {
+      when {
+        expression {
+            return env.BRANCH_NAME == 'master'
+        }
+      }
+      steps {
+          sh 'gradle assembleRelease'
       }
     }
     stage('Sign APK') {
@@ -55,6 +65,12 @@ pipeline {
                 }
                 successful_message = "${successful_message}\nProd APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-release-${env.BUILD_NUMBER}.apk|app-release-${env.BUILD_NUMBER}.apk>"
             }
+            if (env.BRANCH_NAME == 'dev') {
+                withAWS(credentials: 'ethan.aws', region: 'ap-northeast-1') {
+                    s3Upload(file: 'app-debug.apk', bucket: 'jenkins-archiver', path: "archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk")
+                }
+                successful_message = "${successful_message}\nProd APK: <https://s3-ap-northeast-1.amazonaws.com/jenkins-archiver/archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk|app-debug-${env.BUILD_NUMBER}.apk>"
+            }
             if (!env.BRANCH_NAME.startsWith('PR')){
                 withAWS(credentials: 'ethan.aws', region: 'ap-northeast-1') {
                     s3Upload(file: 'app/build/outputs/apk/app-debug.apk', bucket: 'jenkins-archiver', path: "archive/${env.JOB_NAME}/${env.BUILD_NUMBER}/app-debug-${env.BUILD_NUMBER}.apk")
@@ -71,15 +87,15 @@ pipeline {
             if (env.BRANCH_NAME.startsWith('PR')){
                 successful_message = "${successful_message} \n This PR looks good, it can be merged into ${env.CHANGE_TARGET}"
             }
-            slackSend(message: successful_message, channel: '#general', color: '#00FF00', teamDomain: 'jenkinsdemoteam', token: slack_token)
+            slackSend(message: successful_message, channel: '#vn-actisso', color: '#00FF00', teamDomain: 'innovatube', token: slack_token)
         }
 
     }
     failure {
-      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#FF0000', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
+      slackSend(message: "FAILED: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#FF0000', channel: '#vn-actisso', teamDomain: 'innovatube', token: slack_token)
     }
     unstable {
-      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#828282', channel: '#general', teamDomain: 'jenkinsdemoteam', token: slack_token)
+      slackSend(message: "UNSTABLE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n<${env.BUILD_URL}|Open>", color: '#828282', channel: '#vn-actisso', teamDomain: 'innovatube', token: slack_token)
     }
   }
 }
